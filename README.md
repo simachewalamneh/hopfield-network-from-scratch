@@ -34,11 +34,58 @@ python experiments/pattern_interference.py
 pytest
 ```
 
-## Expected results (paper, N=100)
+## Results
 
-- P=5: memories are almost always stable.
-- P=15 (~0.15N): about half are recovered with fewer than 5 errors.
-- Memories at Hamming distance ~10 tend to fuse.
+All experiments use N = 100 neurons, random bipolar patterns, and fixed seeds.
+
+### Memory capacity (`experiments/memory_capacity.py`)
+
+| P | P/N | Exact recall | Mean bit errors |
+|---|-----|--------------|-----------------|
+| 1 | 0.01 | 1.00 | 0.00 |
+| 5 | 0.05 | 1.00 | 0.00 |
+| 8 | 0.08 | 1.00 | 0.00 |
+| 10 | 0.10 | 0.97 | 0.08 |
+| 12 | 0.12 | 0.90 | 0.38 |
+| 15 | 0.15 | 0.72 | 1.79 |
+| 20 | 0.20 | 0.42 | 6.06 |
+| 30 | 0.30 | 0.04 | 21.74 |
+
+Recall is perfect up to P = 8 and degrades sharply beyond P/N ~ 0.15, consistent with the paper's capacity estimate of about 0.15N.
+
+### Noise robustness (`experiments/noise_robustness.py`, P = 5)
+
+| Noise | Bit accuracy | Exact recovery |
+|-------|--------------|----------------|
+| 0.00 | 1.000 | 1.000 |
+| 0.10 | 1.000 | 1.000 |
+| 0.20 | 0.998 | 0.987 |
+| 0.30 | 0.986 | 0.927 |
+| 0.40 | 0.843 | 0.500 |
+| 0.50 | 0.506 | 0.000 |
+
+Up to 30% corruption is almost always corrected. At 50% the input is uncorrelated with the memory and accuracy falls to chance. Bit accuracy and exact recovery differ: at 40% noise, 84% of bits are right but only half of patterns are recovered exactly.
+
+### Pattern interference (`experiments/pattern_interference.py`)
+
+Seven random memories plus an eighth at a given Hamming distance from one of them.
+
+| Distance | Both stable | Distance between recalled states |
+|----------|-------------|----------------------------------|
+| 50 (random) | 0.97 | 50.0 |
+| 30 | 0.73 | 28.9 |
+| 20 | 0.13 | 12.6 |
+| 10 | 0.03 | 2.2 |
+
+Similar memories displace each other and, at distance 10, fuse into one attractor, as the paper reports.
+
+### Energy dynamics (`examples/03_energy_dynamics.py`)
+
+Energy never increased during asynchronous updates, and the network converged in 2 sweeps from a random start. Stored patterns sit at energy near -49.
+
+### Letter patterns (`examples/02_pattern_reconstruction.py`)
+
+Recall of a noisy "A" (5 flips) stored with "H" and "L" failed. These letters overlap heavily, so the memories are correlated and the network converged to a spurious mixed state. This is the correlated-pattern limitation described in the paper.
 
 ## Limitations
 
